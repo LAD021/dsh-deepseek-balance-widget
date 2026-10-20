@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crazy-L118/dsh-deepseek-balance-widget.git"
+    "url": "git+https://github.com/LAD021/dsh-deepseek-balance-widget.git"
   },
   "publishConfig": {
     "access": "public"
@@ -62,5 +62,9 @@
     "@deepseek-ai/cordis": {
       "optional": true
     }
-  }
+  },
+  "author": "LAD021 (fork maintainer); upstream crazy-L118",
+  "bugs": "https://github.com/LAD021/dsh-deepseek-balance-widget/issues",
+  "homepage": "https://github.com/LAD021/dsh-deepseek-balance-widget#readme",
+  "private": false
 }
