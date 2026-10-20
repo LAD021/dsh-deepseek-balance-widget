@@ -1,8 +1,16 @@
 # dsh-deepseek-balance-widget
 
+> **Fork 说明**：本仓库 fork 自 [crazy-L118/dsh-deepseek-balance-widget](https://github.com/crazy-L118/dsh-deepseek-balance-widget)（MIT，感谢原作者），在其基础上新增 **New API（new-api 网关中转站）** 作为第三种平台类型，并携带了平台限流退避修复。上游架构与凭据存储方式保持不变。
+
 [English](README_EN.md) | 中文
 
-在 dsh Web 侧边栏显示 AI 余额的多平台插件：内置 **DeepSeek**，可添加 **MiMo（小米）**，每 30 秒自动刷新。
+在 dsh Web 侧边栏显示 AI 余额的多平台插件：内置 **DeepSeek**，可添加 **MiMo（小米）** 与 **New API（中转站，如 Pezayo 等 new-api 部署）**，每 30 秒自动刷新。
+
+## New API 平台（本 fork 新增）
+
+- 数据来源：站点的管理端接口（`GET /api/user/self` 余额、`GET /api/data/self` 今日用量），鉴权用控制台「安全与访问 → 系统访问令牌」（account_access_token，非 sk- 模型密钥），配 `New-Api-User: <userId>` 头
+- 换算：new-api 标准 `$1 = 500000 quota`；显示 余额 / 累计已用 / 今日消费 / 今日 Token / 今日请求 / 今日模型明细
+- 令牌仅存本机 `~/.dsh/ai-balances.json`，不上传
 
 ## 功能
 
