@@ -2,7 +2,20 @@
 
 English | [中文](README.md)
 
-A multi-provider AI balance widget for the dsh web sidebar. **DeepSeek** is built in; add **MiMo (Xiaomi)** from the popover. Auto-refreshes every 30 seconds.
+A multi-provider AI balance widget for the dsh web sidebar. **DeepSeek** is built in; add **MiMo (Xiaomi)**, **New API** relays, or **Command Code (GOAT)** from the popover. Auto-refreshes every 30 seconds.
+
+Each provider only shows the fields its API actually exposes.
+
+## Command Code (GOAT) (added in this fork)
+
+- Data source: Command Code internal endpoints, authenticated with the browser session cookie on `api.commandcode.ai`
+  - `/internal/billing/credits` → monthly cap, remaining credits, 5-hour / weekly windows
+  - `/internal/usage/summary` → spend, tokens and requests for the billing period
+  - `/internal/billing/subscriptions` → subscription status (GOAT)
+- Sidebar pill: balance / spent this billing period / period tokens
+- Details: balance, monthly cap, period spend / tokens / requests, billing period range, 5-hour window ($14), weekly window ($35) with reset times, plan
+- **No "today" metric**: Command Code only reports a billing-period summary, so today spend / tokens are not shown (older build showed a wrong 0.00; removed in v2.5.1)
+- Cookie stays local in `~/.dsh/ai-balances.json`; the session cookie expires after ~30 days
 
 ## Features
 

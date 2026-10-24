@@ -1,10 +1,12 @@
 # dsh-deepseek-balance-widget
 
-> **Fork 说明**：本仓库 fork 自 [crazy-L118/dsh-deepseek-balance-widget](https://github.com/crazy-L118/dsh-deepseek-balance-widget)（MIT，感谢原作者），在其基础上新增 **New API（new-api 网关中转站）** 作为第三种平台类型，并携带了平台限流退避修复。上游架构与凭据存储方式保持不变。
+> **Fork 说明**：本仓库 fork 自 [crazy-L118/dsh-deepseek-balance-widget](https://github.com/crazy-L118/dsh-deepseek-balance-widget)（MIT，感谢原作者），在其基础上新增 **New API（new-api 网关中转站）** 与 **Command Code（GOAT 订阅）** 两类平台，并携带了平台限流退避修复。上游架构与凭据存储方式保持不变。
 
 [English](README_EN.md) | 中文
 
-在 dsh Web 侧边栏显示 AI 余额的多平台插件：内置 **DeepSeek**，可添加 **MiMo（小米）** 与 **New API（中转站，如 Pezayo 等 new-api 部署）**，每 30 秒自动刷新。
+在 dsh Web 侧边栏显示 AI 余额的多平台插件：内置 **DeepSeek**，可添加 **MiMo（小米）**、**New API（中转站，如 Pezayo 等 new-api 部署）**、**Command Code（GOAT）**，每 30 秒自动刷新。
+
+每家平台只显示自己**真实存在**的字段（见下方各平台说明），没有对应接口的字段不会出现。
 
 ## New API 平台（本 fork 新增）
 
@@ -12,12 +14,23 @@
 - 换算：new-api 标准 `$1 = 500000 quota`；显示 余额 / 累计已用 / 今日消费 / 今日 Token / 今日请求 / 今日模型明细
 - 令牌仅存本机 `~/.dsh/ai-balances.json`，不上传
 
+## Command Code（GOAT）平台（本 fork 新增）
+
+- 数据来源：Command Code 后台内部接口（会话 Cookie 鉴权，域名 `api.commandcode.ai`）
+  - `/internal/billing/credits` → 月额度上限、剩余额度、5 小时 / 每周窗口
+  - `/internal/usage/summary` → 计费周期内的消费、Token、请求数
+  - `/internal/billing/subscriptions` → 订阅状态（GOAT）
+- 侧边栏胶囊：余额 / 本周期已用 / 本周期 Token
+- 详情面板：余额、月额度上限、本周期已用 / Token / 请求、**计费周期起止**、**5 小时窗口（$14）**、**每周窗口（$35）** 与重置时间、套餐
+- **没有「今日」口径**：Command Code 只提供计费周期汇总，所以不显示今日消费 / 今日 Token（早期版本显示 0.00 是错的，v2.5.1 起移除）
+- Cookie 仅存本机 `~/.dsh/ai-balances.json`；会话 Cookie 约 30 天过期，过期后重新登录复制 `__Secure-commandcode_prod_.session_token`
+
 ## 功能
 
 ![AI 余额侧边栏展示](assets/screenshot.png)
 
 **侧边栏入口**
-- 实时显示当前平台的余额 / 今日消费 / 今日 Token，每 30 秒自动刷新
+- 实时显示当前平台的余额与可用用量（DeepSeek / MiMo / New API 为今日口径，Command Code 为本周期口径），每 30 秒自动刷新
 - 数值随弹窗内切换的平台联动
 
 **详情弹窗**
