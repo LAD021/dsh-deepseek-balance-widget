@@ -8,6 +8,24 @@
 
 每家平台只显示自己**真实存在**的字段（见下方各平台说明），没有对应接口的字段不会出现。
 
+## 安装（同学用）
+
+前置：本机已装 DeepSeek Harness（`dsh --version` 能跑）。
+
+```bash
+# 1) 下载 release 包（或 git clone 本仓库）
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.5.2/dsh-deepseek-balance-widget-2.5.2.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.5.2.tgz -C ~/plugins
+
+# 2) 装进你的 profile（Web 用 web，桌面 App 用 desktop）
+dsh plugin add --profile web ~/plugins/package
+```
+
+3）把插件加进该 profile 的 bundle 列表——编辑 `~/.dsh/profiles/web/package.json`，在 `dsh.profile.bundles` 数组里加一行 `"dsh-deepseek-balance-widget"`。
+4）重启 dsh（桌面 App 退出重开）。侧栏出现余额胶囊后：点余额 →「+ 添加」→ 选 **Command Code（GOAT）** → 粘贴登录 api.commandcode.ai 后的 Cookie。
+
+（npm 上目前还是上游 2.4.3，不含 GOAT；等发版后可直接 `dsh plugin add dsh-deepseek-balance-widget`。）
+
 ## New API 平台（本 fork 新增）
 
 - 数据来源：站点的管理端接口（`GET /api/user/self` 余额、`GET /api/data/self` 今日用量），鉴权用控制台「安全与访问 → 系统访问令牌」（account_access_token，非 sk- 模型密钥），配 `New-Api-User: <userId>` 头
@@ -23,6 +41,8 @@
 - 侧边栏胶囊：余额 / 本周期已用 / 本周期 Token
 - 详情面板：余额、月额度上限、本周期已用 / Token / 请求、**计费周期起止**、**5 小时窗口（$14）**、**每周窗口（$35）** 与重置时间、套餐
 - **没有「今日」口径**：Command Code 只提供计费周期汇总，所以不显示今日消费 / 今日 Token（早期版本显示 0.00 是错的，v2.5.1 起移除）
+- **金额单位：美元（$）**。官方 Usage Limits：GOAT 每月 $70 额度、5 小时窗口 $14、每周窗口 $35；满额度模型上 1 credit ≈ $1 用量（DeepSeek V4.1 Flash 的按模型额度是 $80）
+- 订阅价格 $10/月，由 Stripe 按本地货币扣款（本机这单支付宝 ¥74.79），所以「账单是人民币、额度是美元」，插件里一律按美元显示
 - Cookie 仅存本机 `~/.dsh/ai-balances.json`；会话 Cookie 约 30 天过期，过期后重新登录复制 `__Secure-commandcode_prod_.session_token`
 
 ## 功能

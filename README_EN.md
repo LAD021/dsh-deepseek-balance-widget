@@ -6,6 +6,16 @@ A multi-provider AI balance widget for the dsh web sidebar. **DeepSeek** is buil
 
 Each provider only shows the fields its API actually exposes.
 
+## Install (for labmates)
+
+```bash
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.5.2/dsh-deepseek-balance-widget-2.5.2.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.5.2.tgz -C ~/plugins
+dsh plugin add --profile web ~/plugins/package   # or --profile desktop
+```
+
+Then add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in `~/.dsh/profiles/<profile>/package.json`, restart dsh, and add your Command Code cookie from the "+ Add" button. (npm still has upstream 2.4.3 without GOAT.)
+
 ## Command Code (GOAT) (added in this fork)
 
 - Data source: Command Code internal endpoints, authenticated with the browser session cookie on `api.commandcode.ai`
@@ -15,6 +25,8 @@ Each provider only shows the fields its API actually exposes.
 - Sidebar pill: balance / spent this billing period / period tokens
 - Details: balance, monthly cap, period spend / tokens / requests, billing period range, 5-hour window ($14), weekly window ($35) with reset times, plan
 - **No "today" metric**: Command Code only reports a billing-period summary, so today spend / tokens are not shown (older build showed a wrong 0.00; removed in v2.5.1)
+- **Amounts are in USD ($)**: official Usage Limits give GOAT $70 monthly credits, $14 per 5-hour window, $35 per week; on full-allowance models 1 credit ≈ $1 of usage (DeepSeek V4.1 Flash has an $80 per-model allowance)
+- The $10/month subscription is charged by Stripe in your local currency (Alipay ¥74.79 on this machine), so the invoice is CNY while the credits are USD; the widget always shows USD
 - Cookie stays local in `~/.dsh/ai-balances.json`; the session cookie expires after ~30 days
 
 ## Features
