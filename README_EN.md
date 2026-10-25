@@ -68,21 +68,27 @@ This fork's version is **upstream version + `--` + our revision**, e.g. `2.4.3--
 - After placement, a next-frame check re-places the entry if it was moved away
 - Recognizes common skin markers (e.g. `[data-maid-sidebar-footer]`) as fallback sidebar anchors
 
-## Install
+## Install (GitHub Release only — this fork is not published to npm)
 
-Requires: dsh installed (with `dsh web` working).
+Requires dsh installed (`dsh --version` works).
 
 ```bash
-dsh plugin --profile web add dsh-deepseek-balance-widget@2.4.3
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
+dsh plugin add --profile web ~/plugins/package    # use --profile desktop for the desktop app
 ```
 
-Installed from npm and auto-registered by dsh. **Restart `dsh web`** and the balance button appears in the sidebar.
+Then add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in `~/.dsh/profiles/<profile>/package.json` and restart dsh. Open the balance pill → "+ Add" → **Command Code (GOAT)** → paste your api.commandcode.ai cookie.
 
-> **Always pin the version `@2.4.3`** (the current latest stable). Do not use `@latest` — local pnpm/npm cache or a mirror registry can resolve it to an outdated release. When a newer version is released, bump the number here.
+> This fork deliberately **does not publish to npm** — GitHub Releases only. The upstream npm package `dsh-deepseek-balance-widget@2.4.3` has neither New API nor Command Code.
 
-Or just tell your AI:
+### Let your agent install it
 
-> Install the dsh-deepseek-balance-widget plugin for me via npm: run `dsh plugin --profile web add dsh-deepseek-balance-widget@2.4.3`.
+> Install the dsh balance widget (LAD021 fork, with New API and Command Code GOAT):
+> 1. Download https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz and extract it to `~/plugins`
+> 2. `dsh plugin add --profile web ~/plugins/package` (use `--profile desktop` for the desktop app)
+> 3. Add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in that profile's `package.json`
+> 4. Restart dsh, then configure my Command Code (GOAT) cookie (`__Secure-commandcode_prod_.session_token` from a signed-in api.commandcode.ai session)
 
 ## Configuration
 
@@ -104,34 +110,18 @@ Credentials are stored locally in `~/.dsh/ai-balances.json`; nothing is shipped 
 
 ## Update
 
-Upgrade to the latest stable release on npm regardless of which older version you currently have.
+This fork is not on npm, so the popover's one-click update does not apply, and version checks are skipped for fork builds (no false "new version" prompts).
 
-### Method 1: One-click from the popover (recommended for installed users)
-
-1. Open the balance popover; the footer shows the version. When a newer one exists it reads `vX → vY Update` (where `vY` is the highest semver version on npm).
-2. Click "**Update**". The plugin pulls and installs the highest semver version from npm automatically.
-3. After install you **must fully restart `dsh web`** (stop the `dsh web` process / quit the desktop app and reopen — **refreshing the browser tab is not enough**) for the new version to load.
-
-> The popover's "Update" skips the `latest` tag and installs the highest semver version on npm, so it still reaches latest even if someone lowers the `latest` tag.
-
-### Method 2: Force update from the command line (most reliable if stuck)
+To upgrade, install the newer release tarball:
 
 ```bash
-dsh plugin --profile web add dsh-deepseek-balance-widget@2.4.3
+# replace the version with the new release
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
+dsh plugin add --profile web ~/plugins/package
 ```
 
-**Pinning `@2.4.3`** bypasses local cache / mirror desync / a stale `latest` resolution in one step. Then **fully restart `dsh web`**.
-
-### Method 3: Manual update (fallback when the command-line update fails)
-
-```bash
-cd ~/.dsh/profiles/web
-npm install dsh-deepseek-balance-widget@2.4.3   # use `pnpm add` if a pnpm-lock.yaml exists in this dir
-# verify the on-disk version actually changed
-cat node_modules/dsh-deepseek-balance-widget/package.json | grep '"version"'
-```
-
-Once it prints `2.4.3`, **fully restart `dsh web`**.
+Then **fully restart dsh** (quit the desktop app and reopen; refreshing the browser tab is not enough).
 
 > If the popover / command-line update keeps failing (version never changes), an agent host (e.g. WorkBuddy) is likely injecting a file-deletion guard via `NODE_OPTIONS`, which makes pnpm/npm abort during updates. Run the command in a **plain terminal** (not through the agent), or unset `NODE_OPTIONS` first (PowerShell: `set NODE_OPTIONS=`) and retry.
 

@@ -8,23 +8,27 @@
 
 每家平台只显示自己**真实存在**的字段（见下方各平台说明），没有对应接口的字段不会出现。
 
-## 安装（同学用）
+## 安装（只发 GitHub Release，不发 npm）
 
-前置：本机已装 DeepSeek Harness（`dsh --version` 能跑）。
+前置：已装 dsh（`dsh --version` 能跑）。
 
 ```bash
-# 1) 下载 release 包（或 git clone 本仓库）
 curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
 mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
-
-# 2) 装进你的 profile（Web 用 web，桌面 App 用 desktop）
-dsh plugin add --profile web ~/plugins/package
+dsh plugin add --profile web ~/plugins/package    # 桌面 App 用 --profile desktop
 ```
 
-3）把插件加进该 profile 的 bundle 列表——编辑 `~/.dsh/profiles/web/package.json`，在 `dsh.profile.bundles` 数组里加一行 `"dsh-deepseek-balance-widget"`。
-4）重启 dsh（桌面 App 退出重开）。侧栏出现余额胶囊后：点余额 →「+ 添加」→ 选 **Command Code（GOAT）** → 粘贴登录 api.commandcode.ai 后的 Cookie。
+再把 `"dsh-deepseek-balance-widget"` 加进 `~/.dsh/profiles/<profile>/package.json` 的 `dsh.profile.bundles`，重启 dsh。侧栏出现余额胶囊后：点余额 →「+ 添加」→ 选 **Command Code（GOAT）** → 粘贴登录 api.commandcode.ai 后的 Cookie。
 
-（npm 上目前还是上游 2.4.3，不含 GOAT；等发版后可直接 `dsh plugin add dsh-deepseek-balance-widget`。）
+> 本 fork **不发布 npm 包**（不污染 npm 社区），只发 GitHub Release。上游 npm 包 `dsh-deepseek-balance-widget@2.4.3` 不含 New API / Command Code。
+
+### 让 Agent 自己装（把这段直接发给同学那边的 Agent）
+
+> 帮我装 dsh 余额插件（LAD021 fork，带 New API 与 Command Code GOAT）：
+> 1. 下载 https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz ，解压到 `~/plugins`
+> 2. `dsh plugin add --profile web ~/plugins/package`（桌面版用 `--profile desktop`）
+> 3. 把 `"dsh-deepseek-balance-widget"` 加进该 profile 的 `package.json` 的 `dsh.profile.bundles`
+> 4. 重启 dsh，再帮我把 Command Code（GOAT）的 Cookie 配进插件（登录 api.commandcode.ai 后复制 `__Secure-commandcode_prod_.session_token`）
 
 ## New API 平台（本 fork 新增）
 
@@ -40,7 +44,7 @@ dsh plugin add --profile web ~/plugins/package
   - `/internal/billing/subscriptions` → 订阅状态（GOAT）
 - 侧边栏胶囊：余额 / 本周期已用 / 本周期 Token
 - 详情面板：余额、月额度上限、本周期已用 / Token / 请求、**计费周期起止**、**5 小时窗口（$14）**、**每周窗口（$35）** 与重置时间、套餐
-- **没有「今日」口径**：Command Code 只提供计费周期汇总，所以不显示今日消费 / 今日 Token（早期版本显示 0.00 是错的，v2.5.1 起移除）
+- **没有「今日」口径**：Command Code 只提供计费周期汇总，所以不显示今日消费 / 今日 Token（早期版本显示 0.00 是错的，本 fork 起移除）
 - **金额单位：美元（$）**。官方 Usage Limits：GOAT 每月 $70 额度、5 小时窗口 $14、每周窗口 $35；满额度模型上 1 credit ≈ $1 用量（DeepSeek V4.1 Flash 的按模型额度是 $80）
 - 订阅价格 $10/月，由 Stripe 按本地货币扣款（本机这单支付宝 ¥74.79），所以「账单是人民币、额度是美元」，插件里一律按美元显示
 - Cookie 仅存本机 `~/.dsh/ai-balances.json`；会话 Cookie 约 30 天过期，过期后重新登录复制 `__Secure-commandcode_prod_.session_token`
@@ -90,19 +94,7 @@ dsh plugin add --profile web ~/plugins/package
 
 ## 安装
 
-需要：已安装 dsh（可用 `dsh web`）。
-
-```bash
-dsh plugin --profile web add dsh-deepseek-balance-widget@2.4.3
-```
-
-从 npm 拉取安装，dsh 自动注册到 `dsh.profile.bundles`，完成后**重启 `dsh web`** 即可。
-
-> **务必写死版本号 `@2.4.3`**（当前最新稳定版）。不要用 `@latest`——它会被本地 pnpm/npm 缓存或镜像源解析成旧版本，导致装到老版。如果未来发布了更高版本，把这里的版本号换成最新的即可。
-
-也可以直接对 AI 说：
-
-> 帮我用 npm 安装 dsh-deepseek-balance-widget 插件，执行 `dsh plugin --profile web add dsh-deepseek-balance-widget@2.4.3`。
+见文首「安装（只发 GitHub Release，不发 npm）」。
 
 ## 配置
 
@@ -124,34 +116,18 @@ AI 会接管全部：问 API Key / 引导获取平台 Cookie → 读取本机教
 
 ## 更新
 
-无论你当前是哪个旧版本，都推荐升级到 npm 上的最新稳定版。
+本 fork 不发 npm，所以弹窗的「一键更新」不适用于这份；版本检查对 fork 构建会直接跳过（不会误报「有新版本」）。
 
-### 方式一：弹窗一键更新（推荐，已装用户）
-
-1. 打开余额弹窗，底部会显示版本号；有新版本时显示 `vX → vY 更新`（`vY` 为 npm 上 semver 最高的版本）。
-2. 点击「**更新**」，插件会自动从 npm 拉取并安装最高版本。
-3. 安装完成后**必须彻底重启 `dsh web`**（关掉 `dsh web` 进程 / 退出桌面端再重开，**仅刷新浏览器页面无效**）才能加载新版本。
-
-> 弹窗的「更新」会跳过 `latest` tag，直接安装 npm 上 semver 最高的版本，所以即使有人把 `latest` 改低了也能升到最新。
-
-### 方式二：命令行强制更新（最稳妥，适合卡住或装不上的情况）
+升级 = 下载新 Release 的 tgz 覆盖安装：
 
 ```bash
-dsh plugin --profile web add dsh-deepseek-balance-widget@2.4.3
+# 版本号换成新 Release 的
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
+dsh plugin add --profile web ~/plugins/package
 ```
 
-**写死版本号 `@2.4.3`** 可绕过本地缓存 / 镜像源不同步 / `latest` 解析成旧版的问题，一步到位。装完**彻底重启 `dsh web`**。
-
-### 方式三：手动更新（命令行更新失败时兜底）
-
-```bash
-cd ~/.dsh/profiles/web
-npm install dsh-deepseek-balance-widget@2.4.3   # 若目录内有 pnpm-lock.yaml 则用 pnpm add
-# 验证磁盘上确实变了
-cat node_modules/dsh-deepseek-balance-widget/package.json | grep '"version"'
-```
-
-确认输出 `2.4.3` 后，**彻底重启 `dsh web`** 即可。
+装完**彻底重启 dsh**（退出桌面端再重开，仅刷新浏览器页面无效）。
 
 > 如果你的环境里弹窗/命令行的更新一直失败（提示版本没变），通常是 Agent 主机（如 WorkBuddy）通过 `NODE_OPTIONS` 注入了文件删除拦截导致 pnpm/npm 更新中断。此时在**普通终端**（不通过 Agent 运行）里执行上面的命令即可成功；或先执行 `set NODE_OPTIONS=`（PowerShell）再重试。
 
