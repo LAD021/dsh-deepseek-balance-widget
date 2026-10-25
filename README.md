@@ -14,8 +14,8 @@
 
 ```bash
 # 1) 下载 release 包（或 git clone 本仓库）
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.5.2/dsh-deepseek-balance-widget-2.5.2.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.5.2.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
 
 # 2) 装进你的 profile（Web 用 web，桌面 App 用 desktop）
 dsh plugin add --profile web ~/plugins/package
@@ -44,6 +44,14 @@ dsh plugin add --profile web ~/plugins/package
 - **金额单位：美元（$）**。官方 Usage Limits：GOAT 每月 $70 额度、5 小时窗口 $14、每周窗口 $35；满额度模型上 1 credit ≈ $1 用量（DeepSeek V4.1 Flash 的按模型额度是 $80）
 - 订阅价格 $10/月，由 Stripe 按本地货币扣款（本机这单支付宝 ¥74.79），所以「账单是人民币、额度是美元」，插件里一律按美元显示
 - Cookie 仅存本机 `~/.dsh/ai-balances.json`；会话 Cookie 约 30 天过期，过期后重新登录复制 `__Secure-commandcode_prod_.session_token`
+
+## 版本号约定
+
+本 fork 的版本 = **上游版本 + 两杠 + 我们的修订**，例如 `2.4.3--0.2`：
+
+- 前半 `2.4.3` 跟随上游发版（上游最新 tag 就是 v2.4.3）
+- 后半 `0.2` 是本 fork 自己的修订号：`0.2` = 在 2.4.3 基础上新增 **New API** 与 **Command Code** 两个平台
+- fork 构建不会提示「更新到上游」（版本比较里对带 `--` 的版本直接跳过）
 
 ## 功能
 

@@ -9,12 +9,16 @@ Each provider only shows the fields its API actually exposes.
 ## Install (for labmates)
 
 ```bash
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.5.2/dsh-deepseek-balance-widget-2.5.2.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.5.2.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package   # or --profile desktop
 ```
 
 Then add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in `~/.dsh/profiles/<profile>/package.json`, restart dsh, and add your Command Code cookie from the "+ Add" button. (npm still has upstream 2.4.3 without GOAT.)
+
+## Versioning
+
+This fork's version is **upstream version + `--` + our revision**, e.g. `2.4.3--0.2`: the first part follows upstream (latest upstream tag is v2.4.3), the second is our revision — `0.2` = New API + Command Code added on top of 2.4.3. Fork builds never prompt "update to upstream".
 
 ## Command Code (GOAT) (added in this fork)
 
