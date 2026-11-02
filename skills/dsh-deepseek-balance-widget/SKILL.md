@@ -7,6 +7,7 @@ user-invocable: true
 
 # dsh-deepseek-balance-widget 安装技能
 
+
 在用户的 dsh（DeepSeek Harness）中安装 / 卸载 / 检查「DeepSeek 余额侧边栏小部件」插件。
 
 ## 背景
@@ -45,3 +46,14 @@ dsh plugin --profile web rm dsh-deepseek-balance-widget
 - 安装后必须重启 `dsh web` 才生效；不要重启用户的 dsh 服务（重启动作由用户决定）。
 - 全程不要读取、打印或提交任何凭据值（API Key / userToken）。
 - 若安装失败，先检查 pnpm 是否可用、网络是否可达，再检查报错信息。
+
+## 调整侧栏显示顺序（AI 可直接做）
+
+侧栏入口默认只露一家（按「余额还能撑几天」智能选），鼠标悬停展开全部。顺序 = `~/.dsh/ai-balances.json` 的数组顺序，并列时用它决定谁先露。
+
+- 列出现有顺序：`node <插件目录>/scripts/order.mjs`
+- 改顺序：`node <插件目录>/scripts/order.mjs provider-b provider-a`（未提到的排后面，不丢条目；未知 id 退出码 2 且不改文件）
+- 等价 HTTP（宿主端）：`GET /ai-balances-order`、`POST /ai-balances-order` body `{"ids":[...]}`
+- 写完不用重启：前端每 30 秒刷新一次，会按新顺序重排。
+
+注意：Windows 桌面端插件目录在 `%USERPROFILE%\.dsh\plugins\dsh-deepseek-balance-widget`，profile 的 `node_modules` 里是指向它的符号链接，改一处即可。

@@ -4,17 +4,55 @@
 
 [English](README_EN.md) | 中文
 
-在 dsh Web 侧边栏显示 AI 余额的多平台插件：内置 **DeepSeek**，可添加 **MiMo（小米）**、**New API（中转站，如 Pezayo 等 new-api 部署）**、**Command Code（GOAT）**，每 30 秒自动刷新。
+在 dsh Web 侧边栏显示 AI 余额的多平台插件：内置 **DeepSeek**，可添加 **MiMo（小米）**、**New API（自建 new-api 中转站）**、**Command Code（GOAT）**，每 30 秒自动刷新。
 
 每家平台只显示自己**真实存在**的字段（见下方各平台说明），没有对应接口的字段不会出现。
+
+## AutoDL（云 GPU）平台
+
+只读钱包接口，用于**防止欠费停机**；不涉及 token 计量。
+
+- 取数：`POST https://api.autodl.com/api/v1/dev/wallet/balance`，Header `Authorization: <开发者 Token>`（控制台 → 设置 → 开发者Token，**不是** Bearer）。
+- 返回三个金额，单位都是「千分之一元」，除以 1000 得到元：
+
+  | 字段 | 含义 | 是否展示 |
+  |---|---|---|
+  | `assets` | 当前余额 | ✅ 余额 |
+  | `voucher_balance` | 代金券可用余额 | ✅ 代金券 |
+  | `accumulate` | 累计消费（历史总量） | ❌ 无意义，不展示 |
+
+- **关于「最近消费」**：开发者 API 没有该字段。官方账单接口 `POST /api/v1/bill/balance_statement/list`（控制台 → 费用 → 收支明细）能拿到逐笔扣费，但走**网页登录态 Cookie**，不是开发者 Token；要这个功能才需要另配 Cookie。
+- 该接口只读：不能开关机、不能创建实例。
+- 填法：点胶囊 →「+ 添加」→ 平台选 **AutoDL（云 GPU）** → 粘贴开发者 Token。Token 只存本机 `~/.dsh/ai-balances.json`。
+
+## 侧栏注意力（本 fork 新增）
+
+侧栏入口默认**只露一家**，鼠标悬停（或键盘聚焦）展开全部。选谁：
+
+1. **硬警报**：某家取数真失败（不是「待配置」）或余额归零 → 直接置顶；
+2. **额度将满**：有额度窗口的平台（如 5 小时/每周窗口）占用 ≥90% → 置顶；
+3. **其余**：按「见底速度」加权随机 —— 权重 = 每小时烧掉余额的百分比（`Δ余额/余额/小时`），**低于最大权重 5% 的直接剪掉**（小户不闪）；
+4. **迟滞与停留**：当前那家 ×1.5 加成；距上次切换不到 30 秒不换；全静默时固定第一家。
+
+消耗不是从「今日消费」来的，而是采样各平台的**累计消费计数器**差值（DeepSeek `cumulativeSpend`、New API `used`、Command Code `month.cost`、AutoDL `accumulate`），存进 24 个小时桶——**只在内存，重载即清零**，不依赖任何平台的「今日」字段。
+
+参考做法：iOS/Android 的「优先级 + 摘要」而不是轮流弹；加权抽样见 nginx 平滑加权轮询与 A-Res（加权无放回抽样）。
+
+## 顺序接口（人拖 / AI 改）
+
+默认顺序 = `~/.dsh/ai-balances.json` 的数组顺序；「撑几天」并列时按它决定谁先露。
+
+- 网页端：鼠标悬停展开后把某一行拖到新位置，落盘到同一份文件（Host 侧 `POST /ai-balances-order`）。
+- HTTP：`GET /ai-balances-order` 看当前顺序；`POST /ai-balances-order` body `{"ids":["provider-b","provider-a"]}`。未提到的 provider 保持原相对顺序排后面，不会丢条目。
+- CLI：`node scripts/order.mjs` 列出现有 id；`node scripts/order.mjs provider-b provider-a` 改成这个顺序；未知 id 直接退出码 2 且不改文件。
 
 ## 安装（只发 GitHub Release，不发 npm）
 
 前置：已装 dsh（`dsh --version` 能跑）。
 
 ```bash
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package    # 桌面 App 用 --profile desktop
 ```
 
@@ -25,7 +63,7 @@ dsh plugin add --profile web ~/plugins/package    # 桌面 App 用 --profile des
 ### 让 Agent 自己装（把这段直接发给同学那边的 Agent）
 
 > 帮我装 dsh 余额插件（LAD021 fork，带 New API 与 Command Code GOAT）：
-> 1. 下载 https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz ，解压到 `~/plugins`
+> 1. 下载 https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz ，解压到 `~/plugins`
 > 2. `dsh plugin add --profile web ~/plugins/package`（桌面版用 `--profile desktop`）
 > 3. 把 `"dsh-deepseek-balance-widget"` 加进该 profile 的 `package.json` 的 `dsh.profile.bundles`
 > 4. 重启 dsh，再帮我把 Command Code（GOAT）的 Cookie 配进插件（登录 api.commandcode.ai 后复制 `__Secure-commandcode_prod_.session_token`）
@@ -51,10 +89,10 @@ dsh plugin add --profile web ~/plugins/package    # 桌面 App 用 --profile des
 
 ## 版本号约定
 
-本 fork 的版本 = **上游版本 + 两杠 + 我们的修订**，例如 `2.4.3--0.2`：
+本 fork 的版本 = **上游版本 + 两杠 + 我们的修订**，例如 `2.4.3--0.3`：
 
 - 前半 `2.4.3` 跟随上游发版（上游最新 tag 就是 v2.4.3）
-- 后半 `0.2` 是本 fork 自己的修订号：`0.2` = 在 2.4.3 基础上新增 **New API** 与 **Command Code** 两个平台
+- 后半是本 fork 自己的修订号：`0.2` = 新增 **New API** 与 **Command Code**；`0.3` = 再加 **AutoDL**、侧栏注意力（默认只露一家 + 按见底速度加权抽样）、顺序接口（拖拽 / HTTP / CLI）、按累计计数器采样 24h 消耗
 - fork 构建不会提示「更新到上游」（版本比较里对带 `--` 的版本直接跳过）
 
 ## 功能
@@ -122,8 +160,8 @@ AI 会接管全部：问 API Key / 引导获取平台 Cookie → 读取本机教
 
 ```bash
 # 版本号换成新 Release 的
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package
 ```
 
@@ -132,6 +170,15 @@ dsh plugin add --profile web ~/plugins/package
 > 如果你的环境里弹窗/命令行的更新一直失败（提示版本没变），通常是 Agent 主机（如 WorkBuddy）通过 `NODE_OPTIONS` 注入了文件删除拦截导致 pnpm/npm 更新中断。此时在**普通终端**（不通过 Agent 运行）里执行上面的命令即可成功；或先执行 `set NODE_OPTIONS=`（PowerShell）再重试。
 
 ## 更新日志
+
+### v2.4.3--0.3
+
+- **新增平台 AutoDL（云 GPU）**：只读钱包接口（开发者 Token，非 Bearer），显示余额与代金券，用于防欠费停机
+- **新增侧栏注意力**：侧栏入口默认只露一家 —— 硬警报（取数失败 / 余额归零）与额度将满优先，其余按「见底速度」加权抽样；悬停或键盘聚焦展开全部
+- **新增顺序接口**：网页端直接拖拽排顺序，落到 `~/.dsh/ai-balances.json`（Host 侧 `GET/POST /ai-balances-order`），也可以用 `node scripts/order.mjs` 在命令行改序
+- **新增 24h 消耗**：采样各平台累计消费计数器的差值、按小时分桶（仅内存，重载清零），不再依赖各平台的「今日」字段
+- 平台显示名统一为中文全称（New API（中转）/ Command Code（GOAT）/ AutoDL（云 GPU））
+- `package.json` 的 client inject 由 `dsh-client-runtime` 换成 `dsh-client-locale`
 
 ### v2.4.3
 

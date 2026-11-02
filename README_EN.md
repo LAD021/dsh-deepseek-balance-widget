@@ -9,8 +9,8 @@ Each provider only shows the fields its API actually exposes.
 ## Install (for labmates)
 
 ```bash
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package   # or --profile desktop
 ```
 
@@ -18,7 +18,7 @@ Then add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in `~/.dsh/pro
 
 ## Versioning
 
-This fork's version is **upstream version + `--` + our revision**, e.g. `2.4.3--0.2`: the first part follows upstream (latest upstream tag is v2.4.3), the second is our revision — `0.2` = New API + Command Code added on top of 2.4.3. Fork builds never prompt "update to upstream".
+This fork's version is **upstream version + `--` + our revision**, e.g. `2.4.3--0.3`: the first part follows upstream (latest upstream tag is v2.4.3), the second is our revision — `0.2` = New API + Command Code added on top of 2.4.3; `0.3` = AutoDL, sidebar attention (one provider shown by default + weighted sampling by burn rate), ordering API (drag / HTTP / CLI), and 24h spend sampled from cumulative counters. Fork builds never prompt "update to upstream".
 
 ## Command Code (GOAT) (added in this fork)
 
@@ -73,8 +73,8 @@ This fork's version is **upstream version + `--` + our revision**, e.g. `2.4.3--
 Requires dsh installed (`dsh --version` works).
 
 ```bash
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package    # use --profile desktop for the desktop app
 ```
 
@@ -85,7 +85,7 @@ Then add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in `~/.dsh/pro
 ### Let your agent install it
 
 > Install the dsh balance widget (LAD021 fork, with New API and Command Code GOAT):
-> 1. Download https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz and extract it to `~/plugins`
+> 1. Download https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz and extract it to `~/plugins`
 > 2. `dsh plugin add --profile web ~/plugins/package` (use `--profile desktop` for the desktop app)
 > 3. Add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in that profile's `package.json`
 > 4. Restart dsh, then configure my Command Code (GOAT) cookie (`__Secure-commandcode_prod_.session_token` from a signed-in api.commandcode.ai session)
@@ -116,8 +116,8 @@ To upgrade, install the newer release tarball:
 
 ```bash
 # replace the version with the new release
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.2/dsh-deepseek-balance-widget-2.4.3--0.2.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.2.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package
 ```
 
@@ -126,6 +126,15 @@ Then **fully restart dsh** (quit the desktop app and reopen; refreshing the brow
 > If the popover / command-line update keeps failing (version never changes), an agent host (e.g. WorkBuddy) is likely injecting a file-deletion guard via `NODE_OPTIONS`, which makes pnpm/npm abort during updates. Run the command in a **plain terminal** (not through the agent), or unset `NODE_OPTIONS` first (PowerShell: `set NODE_OPTIONS=`) and retry.
 
 ## Changelog
+
+### v2.4.3--0.3
+
+- **New provider: AutoDL (cloud GPU)** — read-only wallet API (developer token, not Bearer); shows balance and vouchers to avoid running out of credit
+- **Sidebar attention**: only one provider is shown by default — hard alerts (fetch failure / zero balance) and nearly-full quotas first, the rest sampled by burn rate; hover or keyboard focus expands all
+- **Ordering API**: drag rows in the popover to reorder (persisted to `~/.dsh/ai-balances.json` via host `GET/POST /ai-balances-order`), or use `node scripts/order.mjs` from the CLI
+- **24h spend**: sampled from per-provider cumulative spend counters, bucketed per hour (in memory only, reset on reload) — no reliance on any platform's "today" field
+- Provider names use the full labels (New API (relay) / Command Code (GOAT) / AutoDL (cloud GPU))
+- `package.json` client inject switched from `dsh-client-runtime` to `dsh-client-locale`
 
 ### v2.4.3
 

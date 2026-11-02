@@ -4,6 +4,28 @@
 
 ---
 
+## v2.4.3--0.3
+
+**Tag:** `v2.4.3--0.3` → main
+
+**Description:**
+
+```markdown
+### 新增
+- **AutoDL（云 GPU）**：只读钱包接口（开发者 Token，非 Bearer），显示余额 / 代金券，防欠费停机
+- **侧栏注意力**：默认只露一家 —— 硬警报与额度将满优先，其余按「见底速度」加权抽样；悬停 / 键盘聚焦展开全部
+- **顺序接口**：网页端拖拽排序（`GET/POST /ai-balances-order`），命令行 `node scripts/order.mjs`
+- **24h 消耗**：采样各平台累计消费计数器差值，按小时分桶（仅内存，重载清零）
+- **平台别名**：每个 provider 可自定义显示名（按账号 / 邮箱区分同一平台的多份凭据）
+
+### 其他
+- 平台显示名统一为中文全称（New API（中转）/ Command Code（GOAT）/ AutoDL（云 GPU））
+- client inject 由 `dsh-client-runtime` 换成 `dsh-client-locale`
+- 安装文档只发 GitHub Release，不发布 npm
+```
+
+---
+
 ## v2.4.3
 
 **Tag:** `v2.4.3` → main
