@@ -4,6 +4,26 @@
 
 ---
 
+## v2.4.3--0.4
+
+**Tag:** `v2.4.3--0.4` → main
+
+**Description:**
+
+```markdown
+### 新增
+- **OpenCode Go（订阅）**：接入 `GET /inference/go/v1/usage`，展示 5 小时 / 每周 / 每月窗口占用百分比与重置时间；订阅制不编造余额
+- 凭据支持 `apiKey: "__credentials__"` + `keyRef`（默认 `OPENCODE_GO_A_KEY`），多号可各配一个 keyRef
+
+### 变更
+- **Command Code 胶囊**：三列改为「5 小时占用 / 本周占用 / 余额」，与 OpenCode Go 同口径
+- **New API 只显示余额**：去掉今日消费 / 今日 Token，不再拉 1000 条日志
+- **降频**：弹窗 5 分钟、后台 30 分钟、上游缓存 15 分钟（New API 30 分钟）
+- 发布物脱敏：代码/文档里的个人部署名与账号 id 全部换为通用名
+```
+
+---
+
 ## v2.4.3--0.3
 
 **Tag:** `v2.4.3--0.3` → main

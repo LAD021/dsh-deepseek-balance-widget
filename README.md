@@ -1,10 +1,10 @@
 # dsh-deepseek-balance-widget
 
-> **Fork 说明**：本仓库 fork 自 [crazy-L118/dsh-deepseek-balance-widget](https://github.com/crazy-L118/dsh-deepseek-balance-widget)（MIT，感谢原作者），在其基础上新增 **New API（new-api 网关中转站）** 与 **Command Code（GOAT 订阅）** 两类平台，并携带了平台限流退避修复。上游架构与凭据存储方式保持不变。
+> **Fork 说明**：本仓库 fork 自 [crazy-L118/dsh-deepseek-balance-widget](https://github.com/crazy-L118/dsh-deepseek-balance-widget)（MIT，感谢原作者），在其基础上新增 **New API（new-api 网关中转站）**、**Command Code（GOAT 订阅）**、**AutoDL** 与 **OpenCode Go（订阅制窗口用量）** 等平台，并携带了平台限流退避修复。上游架构与凭据存储方式保持不变。
 
 [English](README_EN.md) | 中文
 
-在 dsh Web 侧边栏显示 AI 余额的多平台插件：内置 **DeepSeek**，可添加 **MiMo（小米）**、**New API（自建 new-api 中转站）**、**Command Code（GOAT）**，每 30 秒自动刷新。
+在 dsh Web 侧边栏显示 AI 余额的多平台插件：内置 **DeepSeek**，可添加 **MiMo（小米）**、**New API（自建 new-api 中转站）**、**Command Code（GOAT）**、**AutoDL**、**OpenCode Go（订阅）**，打开弹窗时 5 分钟刷新一次、后台 30 分钟一次（站点管理员要求降频，2026-11-19）。
 
 每家平台只显示自己**真实存在**的字段（见下方各平台说明），没有对应接口的字段不会出现。
 
@@ -51,8 +51,8 @@
 前置：已装 dsh（`dsh --version` 能跑）。
 
 ```bash
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.4/dsh-deepseek-balance-widget-2.4.3--0.4.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.4.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package    # 桌面 App 用 --profile desktop
 ```
 
@@ -63,16 +63,20 @@ dsh plugin add --profile web ~/plugins/package    # 桌面 App 用 --profile des
 ### 让 Agent 自己装（把这段直接发给同学那边的 Agent）
 
 > 帮我装 dsh 余额插件（LAD021 fork，带 New API 与 Command Code GOAT）：
-> 1. 下载 https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz ，解压到 `~/plugins`
+> 1. 下载 https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.4/dsh-deepseek-balance-widget-2.4.3--0.4.tgz ，解压到 `~/plugins`
 > 2. `dsh plugin add --profile web ~/plugins/package`（桌面版用 `--profile desktop`）
 > 3. 把 `"dsh-deepseek-balance-widget"` 加进该 profile 的 `package.json` 的 `dsh.profile.bundles`
 > 4. 重启 dsh，再帮我把 Command Code（GOAT）的 Cookie 配进插件（登录 api.commandcode.ai 后复制 `__Secure-commandcode_prod_.session_token`）
 
 ## New API 平台（本 fork 新增）
 
-- 数据来源：站点的管理端接口（`GET /api/user/self` 余额、`GET /api/data/self` 今日用量），鉴权用控制台「安全与访问 → 系统访问令牌」（account_access_token，非 sk- 模型密钥），配 `New-Api-User: <userId>` 头
-- 换算：new-api 标准 `$1 = 500000 quota`；显示 余额 / 累计已用 / 今日消费 / 今日 Token / 今日请求 / 今日模型明细
-- 令牌仅存本机 `~/.dsh/ai-balances.json`，不上传
+- 凭据：**sk- 模型密钥**（控制台「令牌」页），`Authorization: Bearer sk-…` 即可，不需要登录会话、不需要 `New-Api-User` 头（有也会带上）
+- 数据来源（2026-11-19 改）：
+  - 余额：`GET /api/usage/token/` → `data.user_quota.total_available / total_used`；令牌不允许查账号额度时退回令牌自身的 `total_available`（无限额度令牌该值为负，此时不显示余额，不编造）
+  - **只显示一个余额**：今日消费 / 今日 Token / 今日请求 / 今日模型 / 累计已用全部不展示（2026-11-19 用户口径）。原来的 `GET /api/log/token`（一次拉最近 1000 条消费日志）不再调用，New API 每次刷新只有 1 个上游请求
+- 换算：new-api 标准 `$1 = 500000 quota`
+- 为什么不再走管理端接口：多数 new-api 部署把 `/api/user/self`、`/api/data/self` 锁在登录会话后面，账号密码登录返回 `AUTH_SESSION_LIMIT`（409），旧 32 位「系统访问令牌」返回 `ACCESS_TOKEN_LEGACY_RETIRED`
+- 密钥仅存本机 `~/.dsh/ai-balances.json`，不上传
 
 ## Command Code（GOAT）平台（本 fork 新增）
 
@@ -80,19 +84,31 @@ dsh plugin add --profile web ~/plugins/package    # 桌面 App 用 --profile des
   - `/internal/billing/credits` → 月额度上限、剩余额度、5 小时 / 每周窗口
   - `/internal/usage/summary` → 计费周期内的消费、Token、请求数
   - `/internal/billing/subscriptions` → 订阅状态（GOAT）
-- 侧边栏胶囊：余额 / 本周期已用 / 本周期 Token
+- 侧边栏胶囊：5 小时占用 / 本周占用 / 余额（2026-11-20 用户口径：与 OpenCode 一致，胶囊只显示余额 + 两个窗口的占用百分比；本周期已用 / 本周期 Token 保留在详情面板）
 - 详情面板：余额、月额度上限、本周期已用 / Token / 请求、**计费周期起止**、**5 小时窗口（$14）**、**每周窗口（$35）** 与重置时间、套餐
 - **没有「今日」口径**：Command Code 只提供计费周期汇总，所以不显示今日消费 / 今日 Token（早期版本显示 0.00 是错的，本 fork 起移除）
 - **金额单位：美元（$）**。官方 Usage Limits：GOAT 每月 $70 额度、5 小时窗口 $14、每周窗口 $35；满额度模型上 1 credit ≈ $1 用量（DeepSeek V4.1 Flash 的按模型额度是 $80）
 - 订阅价格 $10/月，由 Stripe 按本地货币扣款（本机这单支付宝 ¥74.79），所以「账单是人民币、额度是美元」，插件里一律按美元显示
 - Cookie 仅存本机 `~/.dsh/ai-balances.json`；会话 Cookie 约 30 天过期，过期后重新登录复制 `__Secure-commandcode_prod_.session_token`
 
+## OpenCode Go 平台（本 fork 新增）
+
+- **性质**：$10/月订阅制，**没有余额金额**。额度按 5 小时 / 每周 / 每月三个窗口计，撞上限后可继续用免费模型或加 credits（Extra Usage）。
+- **取数**：`GET https://opencode.ai/inference/go/v1/usage`，Header `Authorization: Bearer <API key>`（Console 里生成的 `oc_sk_…`）。
+  - 返回 `usage.rolling` / `usage.weekly` / `usage.monthly`，各含 `status` / `percent` / `resetsAt`（ISO 时间）。
+  - 这是 Go 订阅链路的读数接口，与按量端点 `/inference/openai/...` 无关；**不要**用 `/v2/models`、`/api.opencode.ai/v1/...` 之类的路径。
+- **凭据**：推荐 `apiKey: "__credentials__"` + `keyRef: "OPENCODE_GO_A_KEY"`，插件运行时从 `~/.dsh/.credentials.yaml` / 环境变量解析，明文密钥不落进 `~/.dsh/ai-balances.json`。多号各自用不同 `keyRef`（如 `OPENCODE_GO_B_KEY`）即可。
+- **显示**：胶囊显示三个窗口占用百分比（如 `0% / 0% / 0%`），详情面板显示各窗口百分比、状态与重置时间、套餐 `Go`。
+  - 不显示余额 / 本周期消费 / Token —— 订阅制没有这些金额口径，插件不编造 0。
+  - 因为 `data.total` / `data.used` 不存在，侧栏的「硬警报（余额归零）」与「24h 消耗权重」会自然跳过这一家，不会误报。
+- 网页端「+ 添加」里选 **OpenCode Go（订阅）** 即可新增；填 API Key（可留空）+ keyRef。
+
 ## 版本号约定
 
 本 fork 的版本 = **上游版本 + 两杠 + 我们的修订**，例如 `2.4.3--0.3`：
 
 - 前半 `2.4.3` 跟随上游发版（上游最新 tag 就是 v2.4.3）
-- 后半是本 fork 自己的修订号：`0.2` = 新增 **New API** 与 **Command Code**；`0.3` = 再加 **AutoDL**、侧栏注意力（默认只露一家 + 按见底速度加权抽样）、顺序接口（拖拽 / HTTP / CLI）、按累计计数器采样 24h 消耗
+- 后半是本 fork 自己的修订号：`0.2` = 新增 **New API** 与 **Command Code**；`0.3` = 再加 **AutoDL**、侧栏注意力（默认只露一家 + 按见底速度加权抽样）、顺序接口（拖拽 / HTTP / CLI）、按累计计数器采样 24h 消耗；`0.4` = 新增 **OpenCode Go**（订阅制窗口用量，凭据走 `keyRef` 引用）
 - fork 构建不会提示「更新到上游」（版本比较里对带 `--` 的版本直接跳过）
 
 ## 功能
@@ -100,7 +116,7 @@ dsh plugin add --profile web ~/plugins/package    # 桌面 App 用 --profile des
 ![AI 余额侧边栏展示](assets/screenshot.png)
 
 **侧边栏入口**
-- 实时显示当前平台的余额与可用用量（DeepSeek / MiMo / New API 为今日口径，Command Code 为本周期口径），每 30 秒自动刷新
+- 实时显示当前平台的余额与可用用量（DeepSeek / MiMo 为今日口径，New API 只显示余额，Command Code 为余额 + 5 小时 / 本周窗口占用）；弹窗打开时 5 分钟刷新、后台 30 分钟刷新，手动点刷新才跳过缓存
 - 数值随弹窗内切换的平台联动
 
 **详情弹窗**
@@ -149,6 +165,7 @@ AI 会接管全部：问 API Key / 引导获取平台 Cookie → 读取本机教
 | DeepSeek | `DEEPSEEK_API_KEY` | 必填，余额 |
 | DeepSeek 用量 | `DEEPSEEK_PLATFORM_TOKEN` | 可选，统计累计 / 本月 / 今日 |
 | MiMo（小米） | 登录 Cookie | AI 引导获取 |
+| OpenCode Go | `__credentials__` + `keyRef`（或直接 API Key） | 取数走 `/inference/go/v1/usage`，只显示窗口占用 |
 
 凭据保存在你本机的 `~/.dsh/ai-balances.json`，不随插件分发、不上传。
 
@@ -160,8 +177,8 @@ AI 会接管全部：问 API Key / 引导获取平台 Cookie → 读取本机教
 
 ```bash
 # 版本号换成新 Release 的
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.4/dsh-deepseek-balance-widget-2.4.3--0.4.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.4.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package
 ```
 
@@ -170,6 +187,17 @@ dsh plugin add --profile web ~/plugins/package
 > 如果你的环境里弹窗/命令行的更新一直失败（提示版本没变），通常是 Agent 主机（如 WorkBuddy）通过 `NODE_OPTIONS` 注入了文件删除拦截导致 pnpm/npm 更新中断。此时在**普通终端**（不通过 Agent 运行）里执行上面的命令即可成功；或先执行 `set NODE_OPTIONS=`（PowerShell）再重试。
 
 ## 更新日志
+
+### v2.4.3--0.4
+
+- **Command Code 胶囊改为窗口口径**：入口三列变成「5 小时占用 / 本周占用 / 余额」，与 OpenCode Go 对齐（取 `/alpha/billing/credits` 的 `windowLimits.{fiveHour,weekly}` 百分比）；详情面板仍保留余额、月额度上限、本周期用量与窗口金额
+- **New API 只显示余额**：去掉今日消费 / 今日 Token，不再调用 `/api/log/token`（一次拉 1000 条日志的重请求）；余额改走 sk- 密钥可读的 `/api/usage/token/`
+- **降频**：弹窗自动刷新 30 秒 → 5 分钟，后台轮询 30 分钟，上游响应缓存 15 分钟（New API 30 分钟），手动刷新走 `fresh=1` 绕过缓存
+
+- **新增平台 OpenCode Go（订阅）**：接入 `GET /inference/go/v1/usage`，展示 5 小时 / 每周 / 每月三个窗口的占用百分比与重置时间
+- 订阅制不编造余额 / 消费：该 kind 不返回 `total` / `used`，胶囊三列只显示窗口百分比，也不参与「见底速度」权重
+- 凭据支持 `apiKey: "__credentials__"` + `keyRef`（默认 `OPENCODE_GO_A_KEY`），从 `~/.dsh/.credentials.yaml` / 环境变量解析，多号可各配一个 keyRef
+- 「+ 添加」下拉新增 OpenCode Go 选项，含 API Key / keyRef 两个输入框（中英文文案齐备）
 
 ### v2.4.3--0.3
 

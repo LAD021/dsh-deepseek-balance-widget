@@ -149,3 +149,40 @@
 - **Cookie 过期**：MiMo 登录态会过期，余额变 401 时重新走第 2 章。
 - **别删 deepseek 条目**：它是插件默认项，删了会导致 DeepSeek 余额消失。
 - **JSON 写坏**：写文件前后都要 Read 校验，确保数组闭合、逗号正确。
+
+
+---
+
+## 7. OpenCode Go（订阅制）配置 · v2.4.3--0.4 新增
+
+OpenCode Go 是 $10/月订阅制，**没有余额金额**，只有 5 小时 / 每周 / 每月三个窗口的占用百分比。
+本插件的 kind 为 `opencode-go`，取数接口 `GET https://opencode.ai/inference/go/v1/usage`，用 Console 生成的
+API Key（`oc_sk_…`）做 `Authorization: Bearer`。返回 `usage.rolling` / `usage.weekly` / `usage.monthly`，
+各含 `status` / `percent` / `resetsAt`。
+
+写入 `~/.dsh/ai-balances.json` 的格式（推荐，明文密钥不落盘）：
+
+```json
+{
+  "id": "opencode-go-a",
+  "label": "OpenCode Go A（Gmail）",
+  "kind": "opencode-go",
+  "apiKey": "__credentials__",
+  "keyRef": "OPENCODE_GO_A_KEY",
+  "enabled": true
+}
+```
+
+- `apiKey` 也可直接填 `oc_sk_…`；填 `__credentials__` 时，插件按 `keyRef` 从
+  `~/.dsh/.credentials.yaml` / 环境变量解析（默认 `OPENCODE_GO_A_KEY`）。
+- **多号**：第二个号复制一条，改 `id` / `label`，并把 `keyRef` 换成 `OPENCODE_GO_B_KEY` 等，
+  对应密钥写进 `.credentials.yaml` 即可，互不干扰。
+- 网页端「+ 添加」→ 选 **OpenCode Go（订阅）**，可填 API Key（可留空）与 keyRef。
+- 前置条件：Console → Settings → Privacy → Regions 选 **Global**，否则 DeepSeek 模型会 400；
+  Go 推理必须走 `/inference/go/openai/...`，按量端点 `/inference/openai/...` 会 402。
+- 该 kind 不返回 `total` / `used`，因此胶囊只显示三个窗口百分比，不显示余额 / 消费 / Token，
+  也不会参与侧栏「余额归零」硬警报与「见底速度」权重。
+
+验证：`node --check lib/index.js && node --check lib/client.js`；启动 dsh 后请求
+`GET /ai-provider-balance?provider=opencode-go-a`，应返回 `ok:true` 与三个窗口数据。
+改动后**必须彻底重启 dsh**（退出 `dsh web` 再启动），仅刷新浏览器无效。

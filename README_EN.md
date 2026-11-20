@@ -9,8 +9,8 @@ Each provider only shows the fields its API actually exposes.
 ## Install (for labmates)
 
 ```bash
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.4/dsh-deepseek-balance-widget-2.4.3--0.4.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.4.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package   # or --profile desktop
 ```
 
@@ -26,7 +26,7 @@ This fork's version is **upstream version + `--` + our revision**, e.g. `2.4.3--
   - `/internal/billing/credits` → monthly cap, remaining credits, 5-hour / weekly windows
   - `/internal/usage/summary` → spend, tokens and requests for the billing period
   - `/internal/billing/subscriptions` → subscription status (GOAT)
-- Sidebar pill: balance / spent this billing period / period tokens
+- Sidebar pill: 5-hour window used / week window used / balance (same layout as OpenCode; period spend and tokens stay in the details panel)
 - Details: balance, monthly cap, period spend / tokens / requests, billing period range, 5-hour window ($14), weekly window ($35) with reset times, plan
 - **No "today" metric**: Command Code only reports a billing-period summary, so today spend / tokens are not shown (older build showed a wrong 0.00; removed in v2.5.1)
 - **Amounts are in USD ($)**: official Usage Limits give GOAT $70 monthly credits, $14 per 5-hour window, $35 per week; on full-allowance models 1 credit ≈ $1 of usage (DeepSeek V4.1 Flash has an $80 per-model allowance)
@@ -73,8 +73,8 @@ This fork's version is **upstream version + `--` + our revision**, e.g. `2.4.3--
 Requires dsh installed (`dsh --version` works).
 
 ```bash
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.4/dsh-deepseek-balance-widget-2.4.3--0.4.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.4.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package    # use --profile desktop for the desktop app
 ```
 
@@ -85,7 +85,7 @@ Then add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in `~/.dsh/pro
 ### Let your agent install it
 
 > Install the dsh balance widget (LAD021 fork, with New API and Command Code GOAT):
-> 1. Download https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz and extract it to `~/plugins`
+> 1. Download https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.4/dsh-deepseek-balance-widget-2.4.3--0.4.tgz and extract it to `~/plugins`
 > 2. `dsh plugin add --profile web ~/plugins/package` (use `--profile desktop` for the desktop app)
 > 3. Add `"dsh-deepseek-balance-widget"` to `dsh.profile.bundles` in that profile's `package.json`
 > 4. Restart dsh, then configure my Command Code (GOAT) cookie (`__Secure-commandcode_prod_.session_token` from a signed-in api.commandcode.ai session)
@@ -116,8 +116,8 @@ To upgrade, install the newer release tarball:
 
 ```bash
 # replace the version with the new release
-curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.3/dsh-deepseek-balance-widget-2.4.3--0.3.tgz
-mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.3.tgz -C ~/plugins
+curl -LO https://github.com/LAD021/dsh-deepseek-balance-widget/releases/download/v2.4.3--0.4/dsh-deepseek-balance-widget-2.4.3--0.4.tgz
+mkdir -p ~/plugins && tar -xzf dsh-deepseek-balance-widget-2.4.3--0.4.tgz -C ~/plugins
 dsh plugin add --profile web ~/plugins/package
 ```
 
@@ -126,6 +126,12 @@ Then **fully restart dsh** (quit the desktop app and reopen; refreshing the brow
 > If the popover / command-line update keeps failing (version never changes), an agent host (e.g. WorkBuddy) is likely injecting a file-deletion guard via `NODE_OPTIONS`, which makes pnpm/npm abort during updates. Run the command in a **plain terminal** (not through the agent), or unset `NODE_OPTIONS` first (PowerShell: `set NODE_OPTIONS=`) and retry.
 
 ## Changelog
+
+### v2.4.3--0.4
+
+- **Command Code pill switched to window accounting**: the three entry columns are now "5h used / week used / balance", aligned with OpenCode Go (percentages from `windowLimits.{fiveHour,weekly}` of `/alpha/billing/credits`); the details panel still shows balance, monthly cap, period usage and window amounts
+- **New API shows balance only**: today spend / today tokens removed; `/api/log/token` (a 1000-row log fetch) is no longer called, and the balance now comes from the sk- readable `/api/usage/token/`
+- **Slower polling**: popover auto-refresh 30s → 5min, background poll 30min, upstream answers cached 15min (30min for New API); the manual refresh button bypasses with `fresh=1`
 
 ### v2.4.3--0.3
 
@@ -173,3 +179,27 @@ If this plugin helped you, consider buying me a ham sausage for dinner 🍗
 ## License
 
 [MIT](LICENSE)
+
+
+## OpenCode Go (subscription) — added in v2.4.3--0.4
+
+$10/month subscription with **no cash balance**. The plugin reads
+`GET https://opencode.ai/inference/go/v1/usage` (Bearer `oc_sk_…` API key) and shows the
+rolling 5-hour, weekly and monthly window usage percentages plus their reset times.
+
+Provider kind: `opencode-go`. Recommended entry in `~/.dsh/ai-balances.json`:
+
+```json
+{ "id": "opencode-go-a", "label": "OpenCode Go A", "kind": "opencode-go",
+  "apiKey": "__credentials__", "keyRef": "OPENCODE_GO_A_KEY", "enabled": true }
+```
+
+`apiKey: "__credentials__"` makes the plugin resolve `keyRef` from `~/.dsh/.credentials.yaml`
+or the environment, so no plaintext key lands in the store file. Use a different `keyRef`
+per account (e.g. `OPENCODE_GO_B_KEY`) for multiple accounts. The kind deliberately returns
+no `total`/`used`, so no fake balance/spend is shown and the sidebar "balance zero" alert
+and burn-rate weighting skip it.
+
+Setup prerequisite: Console → Settings → Privacy → **Regions = Global**; Go inference uses
+`/inference/go/openai/...` (the pay-as-you-go `/inference/openai/...` endpoint returns 402).
+Restart dsh completely after installing/updating the plugin.

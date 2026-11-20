@@ -4,7 +4,7 @@
  *
  *   node scripts/order.mjs                  # 打印当前顺序（编号 + id + 标签）
  *   node scripts/order.mjs provider-b provider-a   # 把这几个 id 按给定顺序排到最前
- *   node scripts/order.mjs --all commandcode-goat   # 只动一个：提到最前，其余保持原序
+ *   node scripts/order.mjs --all provider-b        # 只动一个：提到最前，其余保持原序
  *
  * 顺序就是 ~/.dsh/ai-balances.json 里的数组顺序；没提到的 provider 保持原相对顺序排在后面，
  * 不会丢条目。写回前会校验 id，未知 id 直接退出码 2，不改文件。
